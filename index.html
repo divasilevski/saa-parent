@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
   <body>
+    <button id="btnAuth">auth</button>
+    <button id="btnToken">token</button>
     <button id="btn">permissions</button>
     <iframe
-      src="https://saa-iframe.vercel.app/"
+      src="https://saa-server.vercel.app"
       sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin"
     ></iframe>
     <script>
@@ -12,12 +14,29 @@
       });
 
       const $btn = document.querySelector("#btn");
+      const $btnAuth = document.querySelector("#btnAuth");
+      const $btnToken = document.querySelector("#btnToken");
+
+      $btnAuth.onclick = () => {
+        fetch("https://saa-server.vercel.app/api/auth", {
+          method: "POST",
+          body: JSON.stringify({ data: "data" }),
+        })
+          .then((data) => data.text())
+          .then((data) => console.log(data));
+      };
+
+      $btnToken.onclick = () => {
+        fetch("https://saa-server.vercel.app/api/token")
+          .then((data) => data.text())
+          .then((data) => console.log(data));
+      };
 
       $btn.onclick = () => {
         navigator.permissions
           .query({
             name: "top-level-storage-access",
-            requestedOrigin: "https://saa-iframe.vercel.app/",
+            requestedOrigin: "https://saa-server.vercel.app",
           })
           .then((res) => {
             if (res.state === "granted") {
@@ -40,7 +59,7 @@
         function rSAFor() {
           if ("requestStorageAccessFor" in document) {
             document
-              .requestStorageAccessFor("https://saa-iframe.vercel.app/")
+              .requestStorageAccessFor("https://saa-server.vercel.app")
               .then(
                 (res) => {
                   console.log(document.cookie);
