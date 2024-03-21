@@ -4,10 +4,10 @@
     <button id="btnAuth">auth</button>
     <button id="btnToken">token</button>
     <button id="btn">permissions</button>
-    <iframe
+    <!-- <iframe
       src="https://saa-server.vercel.app"
       sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin"
-    ></iframe>
+    ></iframe> -->
     <script>
       window.addEventListener("message", (event) => {
         console.log("message", event.data);
@@ -28,7 +28,7 @@
       };
 
       $btnToken.onclick = () => {
-        fetch("https://saa-server.vercel.app/api/token", {
+        fetch("http://localhost:3000/api/token", {
           credentials: "include",
         })
           .then((data) => data.text())
