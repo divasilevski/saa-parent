@@ -28,7 +28,7 @@
       };
 
       $btnToken.onclick = () => {
-        fetch("http://localhost:3000/api/token", {
+        fetch("https://saa-server.vercel.app/api/token", {
           credentials: "include",
         })
           .then((data) => data.text())
