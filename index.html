@@ -1,79 +1,13 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + Vue + TS</title>
+  </head>
   <body>
-    <button id="btnAuth">auth</button>
-    <button id="btnToken">token</button>
-    <button id="btn">permissions</button>
-    <!-- <iframe
-      src="https://saa-server.vercel.app"
-      sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin"
-    ></iframe> -->
-    <script>
-      window.addEventListener("message", (event) => {
-        console.log("message", event.data);
-      });
-
-      const $btn = document.querySelector("#btn");
-      const $btnAuth = document.querySelector("#btnAuth");
-      const $btnToken = document.querySelector("#btnToken");
-
-      $btnAuth.onclick = () => {
-        fetch("https://saa-server.vercel.app/api/auth", {
-          method: "POST",
-          body: JSON.stringify({ data: "data" }),
-          credentials: "include",
-        })
-          .then((data) => data.text())
-          .then((data) => console.log(data));
-      };
-
-      $btnToken.onclick = () => {
-        fetch("https://saa-server.vercel.app/api/token", {
-          credentials: "include",
-        })
-          .then((data) => data.text())
-          .then((data) => console.log(data));
-      };
-
-      $btn.onclick = () => {
-        navigator.permissions
-          .query({
-            name: "top-level-storage-access",
-            requestedOrigin: "https://saa-server.vercel.app",
-          })
-          .then((res) => {
-            if (res.state === "granted") {
-              // Permission has already been granted
-              // You can request storage access without any user gesture
-              rSAFor();
-            } else if (res.state === "prompt") {
-              // Requesting storage access requires user gesture
-              // For example, clicking a button
-              const btn = document.createElement("button");
-              btn.textContent = "Grant access";
-              btn.addEventListener("click", () => {
-                // Request storage access
-                rSAFor();
-              });
-              document.body.appendChild(btn);
-            }
-          });
-
-        function rSAFor() {
-          if ("requestStorageAccessFor" in document) {
-            document
-              .requestStorageAccessFor("https://saa-server.vercel.app")
-              .then(
-                (res) => {
-                  console.log(document.cookie);
-                },
-                (err) => {
-                  console.log(err);
-                }
-              );
-          }
-        }
-      };
-    </script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
