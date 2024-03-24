@@ -5,4 +5,5 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   base: "/saa-parent/",
   plugins: [vue()],
+  server: { port: 3000 },
 });
