@@ -21,6 +21,7 @@
       <b>authToken:</b> {{ authToken }}
       <input v-if="authToken" type="button" value="remove" @click="removeAuthToken" />
     </div>
+    <div><b>topLevelSA:</b> {{ topLevelSA }}</div>
     <hr>
     <button v-if="user" @click="logout">Logout</button>
   </main>
@@ -46,94 +47,37 @@ const onClose = () => {
   isModalOpen.value = false;
 };
 
-const onSignIn = () => {
-  isModalOpen.value = true;
-};
+
 
 const {
   authToken,
   removeAuthToken,
+  topLevelSA,
 
   isLoading,
   user,
 
   signIn,
+  signInSA,
   logout,
 } = useAuth();
+
+const onSignIn = async () => {
+  const isSuccess = await signInSA()
+  if (!isSuccess) {
+    isModalOpen.value = true;
+  }
+};
 
 const onLogin = () => {
   signIn();
   onClose();
-  // if ("requestStorageAccessFor" in document) {
-  //   document
-  //     .requestStorageAccessFor("https://saa-server.vercel.app")
-  //     .then(
-  //       (res) => {
-  //         fetch("https://saa-server.vercel.app/api/auth", {
-  //           method: "POST",
-  //           body: JSON.stringify({ data: "data" }),
-  //           credentials: "include",
-  //         })
-  //           .then((data) => data.text())
-  //           .then((data) => {
-  //             console.log(data)
-  //             cookie.set('auth-token', 'test-auth-token')
-  //             onClose()
-  //           });
-  //       },
-  //       (err) => {
-  //         console.log(err);
-  //       }
-  //     );
-  // }
 };
-
-// const onToken = () => {
-//   if ("requestStorageAccessFor" in document) {
-//     document.requestStorageAccessFor("https://saa-server.vercel.app").then(
-//       (res) => {
-//         fetch("https://saa-server.vercel.app/api/token", {
-//           credentials: "include",
-//         })
-//           .then((data) => data.text())
-//           .then((data) => {
-//             console.log(data);
-//           });
-//       },
-//       (err) => {
-//         console.log(err);
-//       }
-//     );
-//   }
-// };
 
 onMounted(() => {
   window.addEventListener("message", (event) => {
     console.log("message", event.data);
   });
-
-  // navigator.permissions
-  //   .query({
-  //     name: "top-level-storage-access",
-  //     requestedOrigin: "https://saa-server.vercel.app",
-  //   })
-  //   .then((res) => {
-  //     if (res.state === "granted") {
-  //       // Permission has already been granted
-  //       // You can request storage access without any user gesture
-  //       rSAFor();
-  //     } else if (res.state === "prompt") {
-  //       // Requesting storage access requires user gesture
-  //       // For example, clicking a button
-  //       // const btn = document.createElement("button");
-  //       // btn.textContent = "Grant access";
-  //       // btn.addEventListener("click", () => {
-  //       //   // Request storage access
-  //       //   rSAFor();
-  //       // });
-  //       // document.body.appendChild(btn);
-  //     }
-  //   });
 });
 </script>
 

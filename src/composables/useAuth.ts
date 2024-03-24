@@ -7,6 +7,8 @@ export default function useAuth() {
   const isLoading = ref(false);
   const cookie = useCookies();
 
+  const topLevelSA = ref<"granted" | "prompt" | "not-support">("not-support");
+
   const authToken = computed(() => cookie.get("auth-token"));
 
   const removeAuthToken = () => {
@@ -32,6 +34,23 @@ export default function useAuth() {
     } catch (error) {}
   };
 
+  const signInSA = async () => {
+    if (topLevelSA.value === "prompt") {
+      await rSAFor();
+    }
+
+    if (!authToken.value) {
+      await fetchTokenBySSO();
+    }
+
+    if (authToken.value) {
+      await fetchUser();
+      return true;
+    }
+
+    return false;
+  };
+
   const fetchTokenBySSO = async () => {
     try {
       const data = await getAuthToken();
@@ -53,10 +72,39 @@ export default function useAuth() {
     } catch (error) {}
   };
 
+  const checkTopLevelSA = async () => {
+    // try catch ... but i want see errors
+    if ("requestStorageAccessFor" in document) {
+      const response = await navigator.permissions.query({
+        name: "top-level-storage-access",
+        requestedOrigin: "https://saa-server.vercel.app",
+      });
+
+      topLevelSA.value = response.state;
+    }
+  };
+
+  const rSAFor = async () => {
+    if ("requestStorageAccessFor" in document) {
+      try {
+        await document.requestStorageAccessFor("https://saa-server.vercel.app");
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+  };
+
   onMounted(async () => {
+    await checkTopLevelSA();
+
+    if (topLevelSA.value === "granted") {
+      await rSAFor();
+    }
+
     if (!authToken.value) {
       await fetchTokenBySSO();
     }
+
     if (authToken.value) {
       await fetchUser();
     }
@@ -65,11 +113,13 @@ export default function useAuth() {
   return {
     authToken,
     removeAuthToken,
+    topLevelSA,
 
     isLoading,
     user,
 
     signIn,
+    signInSA,
     logout,
   };
 }
