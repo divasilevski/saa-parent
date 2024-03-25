@@ -21,8 +21,9 @@
       <b>authToken:</b> {{ authToken }}
       <input v-if="authToken" type="button" value="remove" @click="removeAuthToken" />
     </div>
-    <div><b>topLevelSA:</b> {{ topLevelSA }}</div>
+    <div><b>topLevelSAA:</b> {{ topLevelSAA }}</div>
     <hr>
+    <button @click="ensureLoginAnd">Ensure Login</button>
     <button v-if="user" @click="logout">Logout</button>
   </main>
 </template>
@@ -47,12 +48,10 @@ const onClose = () => {
   isModalOpen.value = false;
 };
 
-
-
 const {
   authToken,
   removeAuthToken,
-  topLevelSA,
+  topLevelSAA,
 
   isLoading,
   user,
@@ -74,11 +73,15 @@ const onLogin = () => {
   onClose();
 };
 
-onMounted(() => {
-  window.addEventListener("message", (event) => {
-    console.log("message", event.data);
-  });
-});
+
+const ensureLoginAnd = async () => {
+  if (!user.value) {
+    const isSuccess = await signInSA()
+    if (!isSuccess) {
+      isModalOpen.value = true;
+    }
+  }
+}
 </script>
 
 <style scoped>

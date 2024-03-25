@@ -1,23 +1,17 @@
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { getUser, postAuthLogin, postAuthLogout, getAuthToken } from "../api";
-
-declare global {
-  interface Document {
-    requestStorageAccessFor(origin: string): Promise<undefined>;
-    // requestStorageAccess(): Promise<undefined>;
-    // hasStorageAccess(): Promise<boolean>;
-  }
-}
+import useSAA from "./useSAA";
 
 export default function useAuth() {
-  const user = ref<null | object>(null);
   const isLoading = ref(false);
+  const user = ref<null | object>(null);
+
   const cookie = useCookies();
-
-  const topLevelSA = ref<PermissionState | "not-supported">("not-supported");
-
   const authToken = computed(() => cookie.get("auth-token"));
+
+  const { topLevelSAA, checkTopLevelSAA, rSAAFor, createEmbed, removeEmbed } =
+    useSAA();
 
   const removeAuthToken = () => {
     cookie.remove("auth-token");
@@ -36,15 +30,19 @@ export default function useAuth() {
       const data = await postAuthLogin({});
 
       if (data.success) {
-        cookie.set("auth-token", data.token);
+        cookie.set("auth-token", data.token, {
+          sameSite: "none",
+          maxAge: 3600000,
+          secure: true,
+        });
         fetchUser();
       }
     } catch (error) {}
   };
 
   const signInSA = async () => {
-    if (topLevelSA.value === "prompt") {
-      await rSAFor();
+    if (topLevelSAA.value === "prompt") {
+      await rSAAFor();
     }
 
     if (!authToken.value) {
@@ -64,7 +62,11 @@ export default function useAuth() {
       const data = await getAuthToken();
 
       if (data.success) {
-        cookie.set("auth-token", data.token);
+        cookie.set("auth-token", data.token, {
+          sameSite: "none",
+          maxAge: 3600000,
+          secure: true,
+        });
       }
     } catch (error) {}
   };
@@ -80,33 +82,15 @@ export default function useAuth() {
     } catch (error) {}
   };
 
-  const checkTopLevelSA = async () => {
-    // try catch ... but i want see errors
-    if ("requestStorageAccessFor" in document) {
-      const response = await navigator.permissions.query({
-        name: "top-level-storage-access" as PermissionName,
-        requestedOrigin: "https://saa-server.vercel.app",
-      } as PermissionDescriptor);
-
-      topLevelSA.value = response.state;
-    }
-  };
-
-  const rSAFor = async () => {
-    if ("requestStorageAccessFor" in document) {
-      try {
-        await document.requestStorageAccessFor("https://saa-server.vercel.app");
-      } catch (error) {
-        console.warn(error);
-      }
-    }
-  };
-
   onMounted(async () => {
-    await checkTopLevelSA();
+    await checkTopLevelSAA();
 
-    if (topLevelSA.value === "granted") {
-      await rSAFor();
+    if (topLevelSAA.value === "granted") {
+      await rSAAFor();
+    }
+
+    if (topLevelSAA.value === "not-supported") {
+      await createEmbed();
     }
 
     if (!authToken.value) {
@@ -118,10 +102,16 @@ export default function useAuth() {
     }
   });
 
+  onUnmounted(() => {
+    if (topLevelSAA.value === "not-supported") {
+      removeEmbed();
+    }
+  });
+
   return {
     authToken,
     removeAuthToken,
-    topLevelSA,
+    topLevelSAA,
 
     isLoading,
     user,
