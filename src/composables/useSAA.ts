@@ -51,6 +51,7 @@ export default function useSAA() {
       const data: EventMessageData = JSON.parse(event.data);
       if (data.event === "SAAStatus") {
         iframeSAA.value = data.status;
+        console.log("logs: ", data);
       }
       if (data.event === "SAAClick") {
         iframeClickStatus.value = data.status;
@@ -68,8 +69,6 @@ export default function useSAA() {
       $iframe.style.width = $el?.clientWidth + "px";
       $iframe.style.height = $el?.clientHeight + "px";
       $iframe.style.display = "none";
-      // $iframe.style.left = "-9999px";
-      // $iframe.style.clipPath = "circle(0)";
 
       $iframe.onload = () => {
         iframe.value = $iframe;
