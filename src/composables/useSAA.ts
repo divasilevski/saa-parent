@@ -96,7 +96,7 @@ export default function useSAA() {
       iframe.value.style.display = "block";
     }
     if (iframeSAA.value === "granted" || iframeSAA.value === "denied") {
-      removeEmbed();
+      iframe.value.style.display = "none";
     }
   });
 
