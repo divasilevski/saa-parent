@@ -2,12 +2,20 @@ import { ref, computed, onMounted } from "vue";
 import { useCookies } from "@vueuse/integrations/useCookies";
 import { getUser, postAuthLogin, postAuthLogout, getAuthToken } from "../api";
 
+declare global {
+  interface Document {
+    requestStorageAccessFor(origin: string): Promise<undefined>;
+    // requestStorageAccess(): Promise<undefined>;
+    // hasStorageAccess(): Promise<boolean>;
+  }
+}
+
 export default function useAuth() {
   const user = ref<null | object>(null);
   const isLoading = ref(false);
   const cookie = useCookies();
 
-  const topLevelSA = ref<"granted" | "prompt" | "not-support">("not-support");
+  const topLevelSA = ref<PermissionState | "not-supported">("not-supported");
 
   const authToken = computed(() => cookie.get("auth-token"));
 
@@ -76,9 +84,9 @@ export default function useAuth() {
     // try catch ... but i want see errors
     if ("requestStorageAccessFor" in document) {
       const response = await navigator.permissions.query({
-        name: "top-level-storage-access",
+        name: "top-level-storage-access" as PermissionName,
         requestedOrigin: "https://saa-server.vercel.app",
-      });
+      } as PermissionDescriptor);
 
       topLevelSA.value = response.state;
     }
