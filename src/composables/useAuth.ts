@@ -10,8 +10,16 @@ export default function useAuth() {
   const cookie = useCookies();
   const authToken = computed(() => cookie.get("auth-token"));
 
-  const { topLevelSAA, checkTopLevelSAA, rSAAFor, createEmbed, removeEmbed } =
-    useSAA();
+  const {
+    topLevelSAA,
+    checkTopLevelSAA,
+    rSAAFor,
+
+    iframeSAA,
+    createEmbed,
+    removeEmbed,
+    iframeClickStatus,
+  } = useSAA();
 
   const removeAuthToken = () => {
     cookie.remove("auth-token");
@@ -90,7 +98,7 @@ export default function useAuth() {
     }
 
     if (topLevelSAA.value === "not-supported") {
-      await createEmbed();
+      await createEmbed("#signBtn");
     }
 
     if (!authToken.value) {
@@ -112,6 +120,8 @@ export default function useAuth() {
     authToken,
     removeAuthToken,
     topLevelSAA,
+    iframeSAA,
+    iframeClickStatus,
 
     isLoading,
     user,

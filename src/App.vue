@@ -4,7 +4,9 @@
     <div>
       <a target="_blank" :href="siteUrl">Another domain</a>
       <Loader v-if="isLoading" />
-      <button v-else-if="!user" @click="onSignIn">Sign In</button>
+      <div v-show="!isLoading && !user" id="signBtn">
+        <button @click="onSignIn">Sign In</button>
+      </div>
       <div>{{ user?.username }}</div>
     </div>
   </header>
@@ -22,6 +24,8 @@
       <input v-if="authToken" type="button" value="remove" @click="removeAuthToken" />
     </div>
     <div><b>topLevelSAA:</b> {{ topLevelSAA }}</div>
+    <div><b>iframeSAA:</b> {{ iframeSAA }}</div>
+    <div><b>iframeClickStatus:</b> {{ iframeClickStatus }}</div>
     <hr>
     <button @click="ensureLoginAnd">Ensure Login</button>
     <button v-if="user" @click="logout">Logout</button>
@@ -29,7 +33,7 @@
 </template>
 
 <script setup>
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed, ref, watch } from "vue";
 import Loader from "./components/Loader.vue";
 import useAuth from "./composables/useAuth";
 
@@ -52,6 +56,8 @@ const {
   authToken,
   removeAuthToken,
   topLevelSAA,
+  iframeSAA,
+  iframeClickStatus,
 
   isLoading,
   user,
@@ -59,7 +65,7 @@ const {
   signIn,
   signInSA,
   logout,
-} = useAuth();
+} = useAuth(isModalOpen);
 
 const onSignIn = async () => {
   const isSuccess = await signInSA()
@@ -82,6 +88,16 @@ const ensureLoginAnd = async () => {
     }
   }
 }
+
+watch(iframeClickStatus, () => {
+  if (iframeClickStatus.value === 'start') {
+    isLoading.value = true
+  }
+  if (iframeClickStatus.value === 'end') {
+    isLoading.value = false
+    ensureLoginAnd()
+  }
+})
 </script>
 
 <style scoped>

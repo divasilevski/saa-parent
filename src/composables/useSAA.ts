@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
 declare global {
   interface Document {
@@ -6,6 +6,12 @@ declare global {
     // requestStorageAccess(): Promise<undefined>;
     // hasStorageAccess(): Promise<boolean>;
   }
+}
+
+interface EventMessageData {
+  event: string;
+  status: PermissionState | "not-supported";
+  cookie: string;
 }
 
 export default function useSAA() {
@@ -34,20 +40,36 @@ export default function useSAA() {
   };
 
   // ---------------------------
-
+  const iframeSAA = ref<PermissionState | "not-supported">("not-supported");
   const iframe = ref();
+  const iframeClickStatus = ref();
 
   const messageListener = (event: MessageEvent) => {
-    console.log("message", event.data);
+    if (event.origin !== "https://saa-server.vercel.app") return;
+
+    try {
+      const data: EventMessageData = JSON.parse(event.data);
+      if (data.event === "SAAStatus") {
+        iframeSAA.value = data.status;
+      }
+      if (data.event === "SAAClick") {
+        iframeClickStatus.value = data.status;
+        console.log("click");
+      }
+    } catch (error) {}
   };
 
-  const createEmbed = () => {
+  const createEmbed = (selector: string) => {
     return new Promise((resolve, reject) => {
       const $iframe = document.createElement("iframe");
-      $iframe.style.position = "fixed";
-      $iframe.style.left = "-9999px";
+      const $el = document.querySelector(selector);
+
+      $iframe.style.position = "absolute";
+      $iframe.style.width = $el?.clientWidth + "px";
+      $iframe.style.height = $el?.clientHeight + "px";
       $iframe.style.display = "none";
-      $iframe.style.clipPath = "circle(0)";
+      // $iframe.style.left = "-9999px";
+      // $iframe.style.clipPath = "circle(0)";
 
       $iframe.onload = () => {
         iframe.value = $iframe;
@@ -59,7 +81,7 @@ export default function useSAA() {
         reject(new Error("Failed to load iframe"));
       };
 
-      document.body.appendChild($iframe);
+      $el?.appendChild($iframe);
       $iframe.src = "https://saa-server.vercel.app";
     });
   };
@@ -69,11 +91,22 @@ export default function useSAA() {
     if (iframe.value) iframe.value.remove();
   };
 
+  watch(iframeSAA, () => {
+    if (iframeSAA.value === "prompt") {
+      iframe.value.style.display = "block";
+    }
+    if (iframeSAA.value === "granted" || iframeSAA.value === "denied") {
+      removeEmbed();
+    }
+  });
+
   return {
     topLevelSAA,
     checkTopLevelSAA,
     rSAAFor,
 
+    iframeSAA,
+    iframeClickStatus,
     createEmbed,
     removeEmbed,
   };
