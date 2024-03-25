@@ -65,6 +65,8 @@ export default function useSAA() {
       const $iframe = document.createElement("iframe");
       const $el = document.querySelector(selector);
 
+      ($iframe as any).sandbox =
+        "allow-storage-access-by-user-activation allow-scripts allow-same-origin";
       $iframe.style.position = "absolute";
       $iframe.style.width = $el?.clientWidth + "px";
       $iframe.style.height = $el?.clientHeight + "px";
